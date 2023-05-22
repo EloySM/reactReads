@@ -48,47 +48,71 @@ function Books() {
       <input
         type="text"
         placeholder="Buscar por título..."
-        className="w-1/3 p-2 mb-6 border rounded-lg block mx-auto text-indigo-600 font-bold bg-amber-50"
+        className="
+    w-1/3
+    mb-6
+    block
+    mx-auto
+    px-4
+    py-3
+    rounded-lg
+    bg-white/10
+    backdrop-blur-sm
+    border
+    border-indigo-600
+    text-indigo-300
+    font-semibold
+    placeholder-indigo-400
+    focus:outline-none
+    focus:border-indigo-400
+    focus:text-indigo-400
+    focus:placeholder-indigo-300
+    transition
+    duration-500
+    shadow-[0_0_10px_rgba(168,85,247,0.7)]
+    focus:shadow-[0_0_15px_rgba(99,102,241,0.8)]
+  "
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
 
+
       {/* Contenedor de libros con animación */}
-        <motion.div className="justify-center grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          <AnimatePresence>
-            {librosFiltrados.length > 0 ? (
-              librosFiltrados.map((libro, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -30 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <BookCard
-                    // className="mx-10"
-                    id={libro.id_book}
-                    title={libro.title}
-                    author={libro.author}
-                    description={libro.description}
-                    image={libro.img_src}
-                    publish_date={libro.publish_date}
-                    publisher={libro.publisher}
-                  />
-                </motion.div>
-              ))
-            ) : (
-              <motion.p
-                className="text-white col-span-full text-center"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5 }}
+      <motion.div className="justify-center grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <AnimatePresence>
+          {librosFiltrados.length > 0 ? (
+            librosFiltrados.map((libro, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -30 }}
+                transition={{ duration: 0.3 }}
               >
-                No hay libros disponibles
-              </motion.p>
-            )}
-          </AnimatePresence>
-        </motion.div>
+                <BookCard
+                  // className="mx-10"
+                  id={libro.id_book}
+                  title={libro.title}
+                  author={libro.author}
+                  description={libro.description}
+                  image={libro.img_src}
+                  publish_date={libro.publish_date}
+                  publisher={libro.publisher}
+                />
+              </motion.div>
+            ))
+          ) : (
+            <motion.p
+              className="text-white col-span-full text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              No hay libros disponibles
+            </motion.p>
+          )}
+        </AnimatePresence>
+      </motion.div>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 function LoginPage() {
   const [loading, setLoading] = useState();
@@ -15,7 +16,7 @@ function LoginPage() {
 
   // variable para mensaje de error
   const [passwordError, setPasswordError] = useState("");
-
+  const navigate = useNavigate()
   // Guardar si todos los campos tienen datos o no
   const allFieldsFilled = isRegister
     ? formData.name &&
@@ -56,62 +57,107 @@ function LoginPage() {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    if (isRegister) {
-      // Se valida que ambas contraseñas coincidan
-      if (formData.password !== formData.confirmPassword) {
-        setPasswordError("Las contraseñas no coinciden.");
-        return; // Para que salga de la funcion y no llegue al console.log
-      }
+    if(loading) return;
 
-      // Limpiar mensaje de error
-      setPasswordError("");
+    setLoading(true);
 
-      try {
-        // Pasamos el username y el email para comprobar si el usuario existe
-        const res = await fetch(`http://localhost:3001/api/user/exist?username=${formData.username}&email=${formData.email}`);
-        const data = await res.json();
-
-        if (data.exists) {
-          setUserExistError("Este usuario o correo ya está registrado.");
-          return;
+    try {
+      if (isRegister) {  // Sign Up
+        // Se valida que ambas contraseñas coincidan
+        if (formData.password !== formData.confirmPassword) {
+          setPasswordError("Las contraseñas no coinciden.");
+          return; // Para que salga de la funcion y no llegue al console.log
         }
 
-        setUserExistError(""); // Limpiar si no hay error
+        // Limpiar mensaje de error
+        setPasswordError("");
 
-        // Aquí continúa el registro normalmente
+        try {
+          // Pasamos el username y el email para comprobar si el usuario existe
+          const res = await fetch(`http://localhost:3001/api/user/exist?username=${formData.username}&email=${formData.email}`);
+          const data = await res.json();
+
+          if (data.exists) {
+            setUserExistError("Este usuario o correo ya está registrado.");
+            return;
+          }
+
+          setUserExistError(""); // Limpiar si no hay error
+
+          // Aquí continúa el registro normalmente
+          console.log("Registrando usuario:", formData);
+
+        } catch (e) {
+          console.error("Error al verificar el usuario llamando a la api:", e);
+          setUserExistError("Error al verificar el usuario.");
+        }
         console.log("Registrando usuario:", formData);
 
-      } catch (e) {
-        console.error("Error al verificar el usuario llamando a la api:", e);
-        setUserExistError("Error al verificar el usuario.");
-      }
-      console.log("Registrando usuario:", formData);
+        try {
+          const res = await fetch("http://localhost:3001/api/user/sign_up", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              name: formData.name,
+              username: formData.username,
+              email: formData.email,
+              password: formData.password
+            })
+          });
+          const data = await res.json();
 
-      try {
-        const res = await fetch("http://localhost:3001/api/user/sign_up", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: formData.name,
-            username: formData.username,
-            email: formData.email,
-            password: formData.password
-          })
-        });
-        const data = await res.json();
-
-        if (res.ok) {
-          console.log("Usuario registrado con éxito");
-        } else {
-          console.log("Error en el registro:", data.message);
+          if (res.ok) {
+            console.log("Usuario registrado con éxito");
+            setIsRegister(false)  // Para que cambie a login despues despues de haber creado el usuario
+            // Limpiamos los input de sign up
+            setFormData({
+              name: "",
+              email: "",
+              username: "",
+              password: "",
+              confirmPassword: ""
+            });
+          } else {
+            console.log("Error en el registro:", data.message);
+          }
+        } catch (e) {
+          console.log("Error al llamar a la api para crear usuario: ", e)
         }
-      } catch (e) {
-        console.log("Error al llamar a la api para crear usuario: ", e)
+
+      } else {  // Login
+        console.log("Logueando usuario:", formData);
+        try {
+          const res = await fetch("http://localhost:3001/api/user/login", {
+            method: "POST",
+            headers: {
+              "Content-Type" : "application/json",
+            },
+            body: JSON.stringify({
+              username: formData.username,
+              password: formData.password,
+            })
+          })
+          
+          const data = await res.json()
+
+          if(data.ok) {
+            console.log("Login correcto ", data);
+            navigate("/news")
+          } else {
+            setUserExistError(data.message || "Error en el login")
+            console.log("Error login: ", data.message)
+          }
+        } catch (e) {
+          console.error("Error al iniciar sesion con el usuario: ", e)
+          setUserExistError("Error al iniciar sesion con el usuario")
+        }
       }
-    } else {
-      console.log("Logueando usuario:", formData);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -230,14 +276,44 @@ function LoginPage() {
 
           <button
             type="submit"
-            disabled={!allFieldsFilled}
-            className={`w-full py-2 rounded-md transition ${allFieldsFilled
-                ? "bg-indigo-600 text-white hover:bg-indigo-700"
-                : "bg-indigo-600/80 text-white cursor-not-allowed"
+            disabled={!allFieldsFilled || loading}
+            className={`w-full py-2 rounded-md flex items-center justify-center gap-2 transition ${allFieldsFilled && !loading
+              ? "bg-indigo-600 text-white hover:bg-indigo-700"
+              : "bg-indigo-600/80 text-white cursor-not-allowed"
               }`}
           >
-            {isRegister ? "Registrar" : "Iniciar sesión"}
+            {loading ? (
+              <motion.div className="flex items-center gap-0.5">
+                <span className="font-medium">Loading</span>
+                <motion.span
+                  animate={{ opacity: [0, 1, 0] }}
+                  transition={{ duration: 1, repeat: Infinity }}
+                  className="text-3xl"
+                >
+                  .
+                </motion.span>
+                <motion.span
+                  animate={{ opacity: [0, 1, 0] }}
+                  transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
+                  className="text-3xl"
+                >
+                  .
+                </motion.span>
+                <motion.span
+                  animate={{ opacity: [0, 1, 0] }}
+                  transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
+                  className="text-3xl"
+                >
+                  .
+                </motion.span>
+              </motion.div>
+            ) : isRegister ? (
+              "Registrar"
+            ) : (
+              "Iniciar sesión"
+            )}
           </button>
+
         </motion.form>
       </AnimatePresence>
 

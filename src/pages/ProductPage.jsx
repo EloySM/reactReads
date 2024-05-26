@@ -14,6 +14,7 @@ function ProductPage() {
 
   useEffect(() => {
     if (!id) return;
+
     const fetchLibro = async () => {
       try {
         const response = await axios.get(
@@ -27,11 +28,46 @@ function ProductPage() {
       }
     };
 
-    fetchLibro();
-  }, [id]);
+    const checkFavorite = async () => {
+      if (!user?.id) return;
+      try {
+        const res = await axios.get(`http://localhost:3001/api/favorites/check`, {
+          params: { userId: user.id, bookId: id }
+        });
+        setAddedToFavorites(res.data.isFavorite);
+      } catch (err) {
+        console.error("Error al comprobar favorito:", err);
+      }
+    };
 
-  const handleAddToFavorites = () => {
-    setAddedToFavorites(!addedToFavorites);
+    fetchLibro();
+    checkFavorite();
+  }, [id, user]);
+
+  const handleAddToFavorites = async () => {
+    if (!user || !user.id) {
+      alert("Debes iniciar sesión para gestionar favoritos");
+      return;
+    }
+
+    try {
+      if (addedToFavorites) {
+        await axios.post("http://localhost:3001/api/favorites/remove", {
+          userId: user.id,
+          bookId: id,
+        });
+        setAddedToFavorites(false);
+      } else {
+        await axios.post("http://localhost:3001/api/favorites/add", {
+          userId: user.id,
+          bookId: id,
+        });
+        setAddedToFavorites(true);
+      }
+    } catch (err) {
+      console.error("Error al modificar favoritos:", err);
+      alert("Hubo un error al actualizar tus favoritos");
+    }
   };
 
   const handleAddToCart = async () => {
@@ -171,9 +207,11 @@ function ProductPage() {
 
           <button
             onClick={handleAddToFavorites}
-            className="bg-blue-500 hover:bg-blue-400 text-white py-2 rounded-md transition"
+            className={`flex items-center justify-center gap-2 py-2 px-4 rounded-md transition text-white ${
+              addedToFavorites ? "bg-red-500 hover:bg-red-400" : "bg-blue-500 hover:bg-blue-400"
+            }`}
           >
-            {addedToFavorites ? "Eliminar de favoritos" : "Añadir a favoritos"}
+            {addedToFavorites ? "❤️ En favoritos" : "🤍 Añadir a favoritos"}
           </button>
 
           <div className="mt-4 space-y-1 text-gray-700 text-sm">

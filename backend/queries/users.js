@@ -24,5 +24,39 @@ WHERE id = $4
 RETURNING *;`;
 
 export const addToCart = `
-INSERT INTO users.cart (user_id, book_id, quantity) 
-VALUES ($1, $2, $3);`;
+  INSERT INTO users.cart (user_id, book_id, quantity)
+  VALUES ($1, $2, $3)
+  ON CONFLICT (user_id, book_id)
+  DO UPDATE SET quantity = users.cart.quantity + EXCLUDED.quantity;
+`;
+
+export const increaseQuantity = `
+  UPDATE users.cart
+  SET quantity = quantity + 1
+  WHERE user_id = $1 AND book_id = $2
+  RETURNING *;
+`;
+
+export const insertProductToCart = `
+  INSERT INTO users.cart (user_id, book_id, quantity)
+  VALUES ($1, $2, $3);
+`;
+
+export const getQuantity = `
+  SELECT quantity
+  FROM users.cart
+  WHERE user_id = $1 AND book_id = $2;
+`;
+
+export const decreaseQuantity = `
+  UPDATE users.cart
+  SET quantity = quantity - 1
+  WHERE user_id = $1 AND book_id = $2 AND quantity > 1
+  RETURNING *;
+
+`;
+
+export const deleteProductFromCart = `
+  DELETE FROM users.cart
+  WHERE user_id = $1 AND book_id = $2;
+`;

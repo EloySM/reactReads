@@ -106,12 +106,59 @@ export const addToCart = async (req, res) => {
   }
 
   try {
-    await pool.query(addToCart,
+    await pool.query(UserQueries.addToCart,
       [userId, bookId, quantity]
     );
     res.status(201).json({ message: "Libro añadido al carrito" });
   } catch (error) {
     console.error("Error al añadir al carrito:", error);
     res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
+
+// Para aumentar o reducir el numero de productos en cart
+export const increaseCartQuantity = async (req, res) => {
+  const { userId, bookId } = req.body;
+  if (!userId || !bookId) return res.status(400).json({ error: "Faltan datos" });
+
+  try {
+    const result = await pool.query(UserQueries.increaseQuantity, [userId, bookId]);
+
+    if (result.rowCount === 0) {
+      // Si no existe, insertar con cantidad 1
+      const insertResult = await pool.query(UserQueries.insertProductToCart, [userId, bookId, 1]);
+      return res.json(insertResult.rows[0]);
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error al aumentar cantidad" });
+  }
+};
+
+export const decreaseCartQuantity = async (req, res) => {
+  const { userId, bookId } = req.body;
+  if (!userId || !bookId) return res.status(400).json({ error: "Faltan datos" });
+
+  try {
+    const current = await pool.query(UserQueries.getQuantity, [userId, bookId]);
+
+    if (current.rowCount === 0) {
+      return res.status(404).json({ error: "Producto no encontrado en carrito" });
+    }
+
+    const quantity = current.rows[0].quantity;
+
+    if (quantity <= 1) {
+      await pool.query(UserQueries.deleteProductFromCart, [userId, bookId]);
+      return res.json({ message: "Producto eliminado del carrito" });
+    } else {
+      const result = await pool.query(UserQueries.decreaseQuantity, [userId, bookId]);
+      return res.json(result.rows[0]);
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error al disminuir cantidad" });
   }
 };

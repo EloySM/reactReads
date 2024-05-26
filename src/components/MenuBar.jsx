@@ -200,7 +200,9 @@ function MenuBar() {
                               </button>
                             </li>
                             <li>
-                              <button className="hover:text-indigo-600 hover:underline w-full text-left transition">
+                              <button 
+                                onClick={() => navigate("/favorites")}
+                                className="hover:text-indigo-600 hover:underline w-full text-left transition">
                                 Your Lists
                               </button>
                             </li>

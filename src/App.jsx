@@ -9,6 +9,7 @@ import LoginPage from "./pages/LoginPage";
 import Profile from "./pages/Profile"
 import MenuBar from "./components/MenuBar";
 import Cart from "./pages/Cart"
+import Favorites from "./pages/Favorites"
 import { UserProvider } from "./context/UserContext";
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/profile" element={<Profile/>} />
             <Route path="/cart" element={<Cart/>} />
+            <Route path="/favorites" element={<Favorites/>} />
           </Routes>
         </main>
       </Router>

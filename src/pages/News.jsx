@@ -1,14 +1,12 @@
 import "../styles/App.css";
-import BookCard from "../components/BookCard";
-
+import BookCardNews from "../components/news/BookCardNews";
 
 function News() {
   return (
     <div className="w-full flex flex-col min-h-screen">
-      {/* <MenuBar /> */}
       <div>
         <div className="flex justify-center mt-36">
-          <BookCard />
+          <BookCardNews />
         </div>
       </div>
     </div>

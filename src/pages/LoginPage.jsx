@@ -1,100 +1,82 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { UserContext } from "../context/UserContext";
 
 function LoginPage() {
-  const [loading, setLoading] = useState();
-  const [userExistError, setUserExistError] = useState(false); // Se utilizará para mostrar un texto de error
-  const [isRegister, setIsRegister] = useState(false);  // Para comprobar si esta en el apartado de login o de sing up
+  const [loading, setLoading] = useState(false);
+  const [userExistError, setUserExistError] = useState(""); // Para errores de login y registro
+  const [isRegister, setIsRegister] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     username: "",
     password: "",
-    confirmPassword: "", // Se añade confirmación de contraseña
+    confirmPassword: "",
   });
 
-  // variable para mensaje de error
-  const [passwordError, setPasswordError] = useState("");
-  const navigate = useNavigate()
-  // Guardar si todos los campos tienen datos o no
+  const { setUser } = useContext(UserContext);
+  const navigate = useNavigate();
+
   const allFieldsFilled = isRegister
     ? formData.name &&
-    formData.email &&
-    formData.username &&
-    formData.password &&
-    formData.confirmPassword
+      formData.email &&
+      formData.username &&
+      formData.password &&
+      formData.confirmPassword
     : formData.username && formData.password;
 
   const toggleMode = () => {
-    // Para indicar que se cambio de login a registro de usuario
-    // Esto no está poniendo en false todo el tiempo a la variable isRegister, en realidad solo la cambia si es true a false y si es false a true
     setIsRegister((prev) => !prev);
-    // Se resetean los campos
     setFormData({
       name: "",
       email: "",
       username: "",
       password: "",
-      confirmPassword: "", // Se resetea también el campo nuevo
+      confirmPassword: "",
     });
-
-    // El error tambien se elimina
     setPasswordError("");
+    setUserExistError("");
   };
 
   const handleChange = (event) => {
+    const { name, value } = event.target;
     setFormData((prev) => ({
-      // En caso de haber cambios se actualizará solo en donde los haya habido. Con ...prev, lo que hago es que los que no hayan sufrido cambios queden igual copiando el anterior valor del input otra para que no se reinicie con esta función
-      // Ejemplo cambio la contraseña porque me equivoqué, el valor de username no se reinicia, lo deja igual.
-      // name hace referencia al atributo (name, username, contraseña...) y value hace referencia al valor (Eloy, eloy_dev_sm, eloy006.)
-      // ...prev son todos aquellos campos que no se han cambiado
       ...prev,
-      [event.target.name]: event.target.value,
+      [name]: value,
     }));
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
-    if(loading) return;
-
+    if (loading) return;
     setLoading(true);
 
     try {
-      if (isRegister) {  // Sign Up
-        // Se valida que ambas contraseñas coincidan
+      if (isRegister) {
         if (formData.password !== formData.confirmPassword) {
           setPasswordError("Las contraseñas no coinciden.");
-          return; // Para que salga de la funcion y no llegue al console.log
+          return;
         }
-
-        // Limpiar mensaje de error
         setPasswordError("");
 
-        try {
-          // Pasamos el username y el email para comprobar si el usuario existe
-          const res = await fetch(`http://localhost:3001/api/user/exist?username=${formData.username}&email=${formData.email}`);
-          const data = await res.json();
+        const res = await fetch(
+          `http://localhost:3001/api/user/exist?username=${formData.username}&email=${formData.email}`
+        );
+        const data = await res.json();
 
-          if (data.exists) {
-            setUserExistError("Este usuario o correo ya está registrado.");
-            return;
-          }
-
-          setUserExistError(""); // Limpiar si no hay error
-
-          // Aquí continúa el registro normalmente
-          console.log("Registrando usuario:", formData);
-
-        } catch (e) {
-          console.error("Error al verificar el usuario llamando a la api:", e);
-          setUserExistError("Error al verificar el usuario.");
+        if (data.exists) {
+          setUserExistError("Este usuario o correo ya está registrado.");
+          return;
         }
-        console.log("Registrando usuario:", formData);
 
-        try {
-          const res = await fetch("http://localhost:3001/api/user/sign_up", {
+        setUserExistError("");
+
+        const registerRes = await fetch(
+          "http://localhost:3001/api/user/sign_up",
+          {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -103,59 +85,50 @@ function LoginPage() {
               name: formData.name,
               username: formData.username,
               email: formData.email,
-              password: formData.password
-            })
-          });
-          const data = await res.json();
-
-          if (res.ok) {
-            console.log("Usuario registrado con éxito");
-            setIsRegister(false)  // Para que cambie a login despues despues de haber creado el usuario
-            // Limpiamos los input de sign up
-            setFormData({
-              name: "",
-              email: "",
-              username: "",
-              password: "",
-              confirmPassword: ""
-            });
-          } else {
-            console.log("Error en el registro:", data.message);
-          }
-        } catch (e) {
-          console.log("Error al llamar a la api para crear usuario: ", e)
-        }
-
-      } else {  // Login
-        console.log("Logueando usuario:", formData);
-        try {
-          const res = await fetch("http://localhost:3001/api/user/login", {
-            method: "POST",
-            headers: {
-              "Content-Type" : "application/json",
-            },
-            body: JSON.stringify({
-              username: formData.username,
               password: formData.password,
-            })
-          })
-          
-          const data = await res.json()
-
-          if(data.ok) {
-            console.log("Login correcto ", data);
-            navigate("/news")
-          } else {
-            setUserExistError(data.message || "Error en el login")
-            console.log("Error login: ", data.message)
+            }),
           }
-        } catch (e) {
-          console.error("Error al iniciar sesion con el usuario: ", e)
-          setUserExistError("Error al iniciar sesion con el usuario")
+        );
+        const registerData = await registerRes.json();
+
+        if (registerRes.ok) {
+          console.log("Usuario registrado con éxito");
+          setIsRegister(false);
+          setFormData({
+            name: "",
+            email: "",
+            username: "",
+            password: "",
+            confirmPassword: "",
+          });
+        } else {
+          setUserExistError(registerData.message || "Error en el registro.");
+        }
+      } else {
+        const loginRes = await fetch("http://localhost:3001/api/user/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username: formData.username,
+            password: formData.password,
+          }),
+        });
+
+        const loginData = await loginRes.json();
+
+        if (loginRes.ok) {
+          setUser(loginData.user);
+          localStorage.setItem("user", JSON.stringify(loginData.user));
+          navigate("/");
+        } else {
+          setUserExistError(loginData.message || "Error en el login.");
         }
       }
     } catch (e) {
-      console.log(e);
+      console.error("Error en la operación:", e);
+      setUserExistError("Ocurrió un error. Inténtalo de nuevo.");
     } finally {
       setLoading(false);
     }
@@ -186,7 +159,7 @@ function LoginPage() {
                   id="name"
                   name="name"
                   type="text"
-                  value={formData.name} // Establece el valor actual con el que está guardado
+                  value={formData.name}
                   onChange={handleChange}
                   required
                   placeholder="Tu nombre completo"
@@ -202,7 +175,7 @@ function LoginPage() {
                   id="email"
                   name="email"
                   type="email"
-                  value={formData.email} // Establece el valor actual con el que está guardado
+                  value={formData.email}
                   onChange={handleChange}
                   required
                   placeholder="tucorreo@ejemplo.com"
@@ -220,7 +193,7 @@ function LoginPage() {
               id="username"
               name="username"
               type="text"
-              value={formData.username} // Establece el valor actual con el que está guardado
+              value={formData.username}
               onChange={handleChange}
               required
               placeholder="Tu usuario"
@@ -260,18 +233,19 @@ function LoginPage() {
                 className={`w-full px-4 py-2 border ${passwordError
                   ? "border-red-500 focus:ring-red-500"
                   : "border-gray-300 focus:ring-indigo-500"
-                  } rounded-md focus:outline-none focus:ring-2`} />
-
-              {/* Por alguna razon que desconozcon esto funciona de la siguiente manera:
-                  Evalua si passwordError tine contenido y si lo tiene significa que es true, entonces se mostrara el mensaje, de lo contrario no */}
-              {passwordError && ( // Esta forma es más limpia que un operador ternario porque no tengo que indicar el caso contrario como null
-                <p className="mt-2 test-sm text-red-600">{passwordError}</p>
-              )}
-
-              {userExistError && (  // A este tipo de condicional se le llama Short-circuit evaluation o Renderizado condicional con operador lógico AND, que locura de nombre, menudo desfase, sefuro estaban motivados cando o puxeron 🫤.
-                <p className="mt-2 test-sm text-red-600">{userExistError}</p>
+                } rounded-md focus:outline-none focus:ring-2`}
+              />
+              {passwordError && (
+                <p className="mt-2 text-sm text-red-600">{passwordError}</p>
               )}
             </div>
+          )}
+
+          {/* Error visible tanto en login como en registro */}
+          {userExistError && (
+            <p className="mb-4 text-sm text-red-600 text-center">
+              {userExistError}
+            </p>
           )}
 
           <button
@@ -284,36 +258,25 @@ function LoginPage() {
           >
             {loading ? (
               <motion.div className="flex items-center gap-0.5">
-                <span className="font-medium">Loading</span>
+                <span className="font-medium">Cargando</span>
                 <motion.span
                   animate={{ opacity: [0, 1, 0] }}
                   transition={{ duration: 1, repeat: Infinity }}
                   className="text-3xl"
-                >
-                  .
-                </motion.span>
+                >.</motion.span>
                 <motion.span
                   animate={{ opacity: [0, 1, 0] }}
                   transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
                   className="text-3xl"
-                >
-                  .
-                </motion.span>
+                >.</motion.span>
                 <motion.span
                   animate={{ opacity: [0, 1, 0] }}
                   transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
                   className="text-3xl"
-                >
-                  .
-                </motion.span>
+                >.</motion.span>
               </motion.div>
-            ) : isRegister ? (
-              "Registrar"
-            ) : (
-              "Iniciar sesión"
-            )}
+            ) : isRegister ? "Registrar" : "Iniciar sesión"}
           </button>
-
         </motion.form>
       </AnimatePresence>
 

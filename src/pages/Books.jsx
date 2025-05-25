@@ -91,7 +91,7 @@ function Books() {
               >
                 <BookCard
                   // className="mx-10"
-                  id={libro.id_book}
+                  id={libro.id}
                   title={libro.title}
                   author={libro.author}
                   description={libro.description}

@@ -1,7 +1,9 @@
 import express from "express";
 import dotenv from "dotenv";
 import { Pool } from "pg";
-// import cors from "cors";
+import cors from "cors";
+import process from 'process';
+
 
 import bookRoutes from "./routes/bookRoutes.js";
 import userRoutes from "./routes/userRoutes.js";

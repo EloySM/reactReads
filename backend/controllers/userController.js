@@ -18,18 +18,20 @@ export const checkUserExists = async (req, res) => {
 };
 
 export const loginUser = async (req, res) => {
-  const { username, password } = req.body; 
-  if ( !username || !password ) {
-    return res.status(400).json({ message: "Faltan campos obligatorios"});
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ message: "Faltan campos obligatorios" });
   }
 
   try {
     const result = await pool.query(UserQueries.loginUser, [username]);
-    if (result.rows.length === 0) return res.status(401).json({ message: "Usuario no encontrado" })
-    const  user = result.rows[0]
-  // Comparar la contraseña enviada con la almacenada
+    if (result.rows.length === 0)
+      return res.status(401).json({ message: "Usuario no encontrado" });
+    const user = result.rows[0];
+    // Comparar la contraseña enviada con la almacenada
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) res.status(401).json({ message: "Contraseña incorrecta"})
+    if (!isMatch)
+      return res.status(401).json({ message: "Contraseña incorrecta" });
 
     return res.status(200).json({
       message: "Login exitoso",
@@ -37,14 +39,14 @@ export const loginUser = async (req, res) => {
         id: user.id,
         name: user.name,
         username: user.username,
-        email: user.email
-      }
-    })
+        email: user.email,
+      },
+    });
   } catch (e) {
     console.error("Error al logear usuario: ", e);
-    res.status(500).json({ message: "Error al logear usuario"});
+    res.status(500).json({ message: "Error al logear usuario" });
   }
-}
+};
 
 export const registerUser = async (req, res) => {
   const { name, username, email, password } = req.body;
@@ -71,5 +73,45 @@ export const registerUser = async (req, res) => {
   } catch (e) {
     console.error("Error al crear usuario: ", e);
     res.status(500).json({ message: "Error al insertar usuario" });
+  }
+};
+
+export const updateUser = async (req, res) => {
+  const { id } = req.params;
+  const { name, username, email } = req.body;
+
+  if (!name || !username || !email) {
+    return res.status(400).json({ message: "Faltan campos obligatorios" });
+  }
+
+  try {
+    const result = await pool.query(UserQueries.updateUser, [name, username, email, id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    return res.json({ message: "Usuario actualizado", user: result.rows[0] });
+  } catch (error) {
+    console.error("Error al actualizar usuario:", error);
+    return res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
+
+export const addToCart = async (req, res) => {
+  const { userId, bookId, quantity } = req.body;
+
+  if (!userId || !bookId || !quantity) {
+    return res.status(400).json({ message: "Faltan datos obligatorios" });
+  }
+
+  try {
+    await pool.query(addToCart,
+      [userId, bookId, quantity]
+    );
+    res.status(201).json({ message: "Libro añadido al carrito" });
+  } catch (error) {
+    console.error("Error al añadir al carrito:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
   }
 };

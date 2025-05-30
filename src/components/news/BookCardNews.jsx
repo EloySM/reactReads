@@ -1,33 +1,85 @@
-import imagen from '../../assets/img/books/sanderson.png'
+import { useEffect, useState } from "react";
+import axios from "axios";
 
-function BookCardNew() {
-  return (
-    <>
-      <div className="w-xl h-full m-auto rounded-3xl items-center flex flex-col p-6 shadow-lg bg-indigo-500 text-center">
-        <h1 className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-100 to-blue-400">
-          Wind and Truth
-        </h1>
+function BookCardNews() {
+  const [books, setBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-        <img
-          className="w-81 saturate-150"
-          src={imagen}
-          alt="Un Mundo Imposible"
-        />
+  useEffect(() => {
+    const fetchLatestBooks = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get("http://localhost:3001/api/books/latest");
+        setBooks(res.data);
+        setError(null);
+      } catch (err) {
+        console.error("Error al obtener los libros más recientes:", err);
+        setError("No se pudieron cargar los libros. Intenta nuevamente.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-        <p className="text-xl text-stone-950">
-          Una serie de historias fascinantes sobre la revolución de los átomos,
-          la genética, la neurociencia, la robótica o la inteligencia artificial
-          se interrelacionan en este inquietante libro que nos llevará a
-          cuestionarnos la realidad del presente y del futuro inmediato.
-        </p>
+    fetchLatestBooks();
+  }, []);
 
-        <button         className="cursor-pointer min-w-70 mt-4 text-xl sm:text-2xl font-medium text-white p-4 rounded-2xl bg-amber-400 hover:bg-amber-500 transition-all duration-300 transform hover:scale-105 shadow-lg"
->
-          Buy Now
-        </button>
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-48 text-gray-600">
+        Cargando libros...
       </div>
-    </>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center text-red-600 font-semibold">
+        {error}
+      </div>
+    );
+  }
+
+  if (books.length === 0) {
+    return (
+      <div className="text-center text-gray-600">
+        No hay libros recientes para mostrar.
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 px-4 mx-90">
+      {books.map((book) => (
+        <div
+          key={book.id}
+          className="bg-gradient-to-br from-indigo-600 to-indigo-400 rounded-3xl shadow-lg overflow-hidden flex flex-col"
+        >
+          <img
+            src={book.img_src}
+            alt={book.title}
+            className="w-full h-48 object-cover"
+            loading="lazy"
+          />
+          <div className="p-5 flex flex-col flex-grow">
+            <h2 className="text-white text-xl font-bold mb-2 truncate" title={book.title}>
+              {book.title}
+            </h2>
+            <p className="text-indigo-100 flex-grow text-sm overflow-hidden line-clamp-3">
+              {book.description}
+            </p>
+            <button
+              className="mt-4 bg-white text-indigo-700 font-semibold rounded-full py-2 px-4 hover:bg-indigo-50 transition"
+              aria-label={`Ver más sobre ${book.title}`}
+              onClick={() => alert(`Clicked en: ${book.title}`)}
+            >
+              Ver más
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 
-export default BookCardNew;
+export default BookCardNews;

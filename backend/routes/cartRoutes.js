@@ -3,6 +3,7 @@ import * as Controller from "../controllers/cartController.js";
 
 const router = express.Router();
 
+router.post("/cart/add", Controller.addToCart); // ✅ Agregada esta línea
 router.post("/cart/remove", Controller.removeFromCart);
 router.post("/cart/clear", Controller.clearCart);
 router.get("/cart/:userId", Controller.getCartByUserIdController);

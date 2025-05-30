@@ -36,7 +36,9 @@ export const getFavorites = async (req, res) => {
   const { userId } = req.params;
 
   try {
-    const result = await pool.query(FavoriteQueries.getFavoritesByUserId, [userId]);
+    const result = await pool.query(FavoriteQueries.getFavoritesByUserId, [
+      userId,
+    ]);
     res.json(result.rows);
   } catch (err) {
     console.error("Error al obtener favoritos:", err);
@@ -45,7 +47,8 @@ export const getFavorites = async (req, res) => {
 };
 
 // Verificar si un libro es favorito
-export const checkIsFavorite = async (req, res) => {
+export const checkFavorite = async (req, res) => {
+  console.log("checkIsFavorite params:", req.query);
   const { userId, bookId } = req.query;
 
   if (!userId || !bookId) {
@@ -53,10 +56,14 @@ export const checkIsFavorite = async (req, res) => {
   }
 
   try {
-    const result = await pool.query(FavoriteQueries.isFavorite, [userId, bookId]);
+    const result = await pool.query(FavoriteQueries.isFavorite, [
+      userId,
+      bookId,
+    ]);
+    console.log("🔍 Resultado SQL:", result.rows, "rowCount:", result.rowCount); // ← Agregado
     res.json({ isFavorite: result.rowCount > 0 });
-  } catch (err) {
-    console.error("Error al verificar favorito:", err); // imprimir el error en consola para entender qué pasa
+  } catch (e) {
+    console.error("Error al verificar favorito:", e);
     res.status(500).json({ message: "Error interno del servidor" });
   }
 };

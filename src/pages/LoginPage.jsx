@@ -58,6 +58,7 @@ function LoginPage() {
       if (isRegister) {
         if (formData.password !== formData.confirmPassword) {
           setPasswordError("Las contraseñas no coinciden.");
+          setLoading(false);
           return;
         }
         setPasswordError("");
@@ -69,6 +70,7 @@ function LoginPage() {
 
         if (data.exists) {
           setUserExistError("Este usuario o correo ya está registrado.");
+          setLoading(false);
           return;
         }
 
@@ -122,6 +124,8 @@ function LoginPage() {
           setUser(loginData.user);
           localStorage.setItem("user", JSON.stringify(loginData.user));
           navigate("/");
+          // Recargar la página para evitar problemas con el estado
+          window.location.reload();
         } else {
           setUserExistError(loginData.message || "Error en el login.");
         }
@@ -152,7 +156,10 @@ function LoginPage() {
           {isRegister && (
             <>
               <div className="mb-4">
-                <label htmlFor="name" className="block mb-2 font-semibold text-gray-700">
+                <label
+                  htmlFor="name"
+                  className="block mb-2 font-semibold text-gray-700"
+                >
                   Nombre completo:
                 </label>
                 <input
@@ -168,7 +175,10 @@ function LoginPage() {
               </div>
 
               <div className="mb-4">
-                <label htmlFor="email" className="block mb-2 font-semibold text-gray-700">
+                <label
+                  htmlFor="email"
+                  className="block mb-2 font-semibold text-gray-700"
+                >
                   Correo electrónico:
                 </label>
                 <input
@@ -186,7 +196,10 @@ function LoginPage() {
           )}
 
           <div className="mb-4">
-            <label htmlFor="username" className="block mb-2 font-semibold text-gray-700">
+            <label
+              htmlFor="username"
+              className="block mb-2 font-semibold text-gray-700"
+            >
               Usuario:
             </label>
             <input
@@ -202,7 +215,10 @@ function LoginPage() {
           </div>
 
           <div className="mb-4">
-            <label htmlFor="password" className="block mb-2 font-semibold text-gray-700">
+            <label
+              htmlFor="password"
+              className="block mb-2 font-semibold text-gray-700"
+            >
               Contraseña:
             </label>
             <input
@@ -219,7 +235,10 @@ function LoginPage() {
 
           {isRegister && (
             <div className="mb-4">
-              <label htmlFor="confirmPassword" className="block mb-2 font-semibold text-gray-700">
+              <label
+                htmlFor="confirmPassword"
+                className="block mb-2 font-semibold text-gray-700"
+              >
                 Repetir contraseña:
               </label>
               <input
@@ -230,9 +249,10 @@ function LoginPage() {
                 onChange={handleChange}
                 required
                 placeholder="Repite tu contraseña"
-                className={`w-full px-4 py-2 border ${passwordError
-                  ? "border-red-500 focus:ring-red-500"
-                  : "border-gray-300 focus:ring-indigo-500"
+                className={`w-full px-4 py-2 border ${
+                  passwordError
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-300 focus:ring-indigo-500"
                 } rounded-md focus:outline-none focus:ring-2`}
               />
               {passwordError && (
@@ -251,10 +271,11 @@ function LoginPage() {
           <button
             type="submit"
             disabled={!allFieldsFilled || loading}
-            className={`w-full py-2 rounded-md flex items-center justify-center gap-2 transition ${allFieldsFilled && !loading
-              ? "bg-indigo-600 text-white hover:bg-indigo-700"
-              : "bg-indigo-600/80 text-white cursor-not-allowed"
-              }`}
+            className={`w-full py-2 rounded-md flex items-center justify-center gap-2 transition ${
+              allFieldsFilled && !loading
+                ? "bg-indigo-600 text-white hover:bg-indigo-700"
+                : "bg-indigo-600/80 text-white cursor-not-allowed"
+            }`}
           >
             {loading ? (
               <motion.div className="flex items-center gap-0.5">
@@ -263,19 +284,29 @@ function LoginPage() {
                   animate={{ opacity: [0, 1, 0] }}
                   transition={{ duration: 1, repeat: Infinity }}
                   className="text-3xl"
-                >.</motion.span>
+                >
+                  .
+                </motion.span>
                 <motion.span
                   animate={{ opacity: [0, 1, 0] }}
                   transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
                   className="text-3xl"
-                >.</motion.span>
+                >
+                  .
+                </motion.span>
                 <motion.span
                   animate={{ opacity: [0, 1, 0] }}
                   transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
                   className="text-3xl"
-                >.</motion.span>
+                >
+                  .
+                </motion.span>
               </motion.div>
-            ) : isRegister ? "Registrar" : "Iniciar sesión"}
+            ) : isRegister ? (
+              "Registrar"
+            ) : (
+              "Iniciar sesión"
+            )}
           </button>
         </motion.form>
       </AnimatePresence>

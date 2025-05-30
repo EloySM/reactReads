@@ -28,10 +28,10 @@ function MenuBar() {
     ? username
         .replace(/[^a-zA-Z]/g, " ")
         .split(" ")
-        .filter(Boolean)  // Eliminar vacíos
+        .filter(Boolean) // Eliminar vacíos
         .map((word) => word[0]) // Coge la primera letra
         .join("")
-        .slice(0, 2)  // Máximo dos letras
+        .slice(0, 2) // Máximo dos letras
         .toUpperCase()
     : "";
 
@@ -48,18 +48,18 @@ function MenuBar() {
       gradient: "from-emerald-400 to-cyan-400",
       activeGradient: "from-green-300 to-blue-400",
     },
-    {
-      path: "/comics",
-      label: "Comic",
-      gradient: "from-emerald-400 to-cyan-400",
-      activeGradient: "from-green-300 to-blue-400",
-    },
-    {
-      path: "/mangas",
-      label: "Mangas",
-      gradient: "from-emerald-400 to-cyan-400",
-      activeGradient: "from-green-300 to-blue-400",
-    },
+    // {
+    //   path: "/comics",
+    //   label: "Comic",
+    //   gradient: "from-emerald-400 to-cyan-400",
+    //   activeGradient: "from-green-300 to-blue-400",
+    // },
+    // {
+    //   path: "/mangas",
+    //   label: "Mangas",
+    //   gradient: "from-emerald-400 to-cyan-400",
+    //   activeGradient: "from-green-300 to-blue-400",
+    // },
   ];
 
   const handleMouseEnter = useCallback(() => {
@@ -188,22 +188,26 @@ function MenuBar() {
                           </div>
                           <ul className="space-y-3 text-sm text-gray-700">
                             <li>
-                              <button 
+                              <button
                                 className="hover:text-indigo-600 hover:underline w-full text-left transition"
-                                onClick={() => navigate("/profile")}>
+                                onClick={() => navigate("/profile")}
+                              >
                                 Your Account
                               </button>
                             </li>
                             <li>
-                              <button className="hover:text-indigo-600 hover:underline w-full text-left transition">
+                              <button 
+                                onClick={() => navigate("/orders")}
+                                className="hover:text-indigo-600 hover:underline w-full text-left transition">
                                 Your Orders
                               </button>
                             </li>
                             <li>
-                              <button 
+                              <button
                                 onClick={() => navigate("/favorites")}
-                                className="hover:text-indigo-600 hover:underline w-full text-left transition">
-                                Your Lists
+                                className="hover:text-indigo-600 hover:underline w-full text-left transition"
+                              >
+                                Your Lists (Favorites)
                               </button>
                             </li>
                             <li>
@@ -212,7 +216,14 @@ function MenuBar() {
                               </button>
                             </li>
                             <li>
-                              <button className="hover:text-red-600 hover:underline w-full text-left transition">
+                              <button
+                                onClick={() => {
+                                  localStorage.removeItem("user");
+                                  setUsername(""); // Limpia el estado local
+                                  navigate("/login"); // o "/" si prefieres llevarlo al inicio
+                                }}
+                                className="hover:text-red-600 hover:underline w-full text-left transition"
+                              >
                                 Sign Out
                               </button>
                             </li>

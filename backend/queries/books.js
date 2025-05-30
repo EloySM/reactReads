@@ -46,3 +46,10 @@ LEFT JOIN books_discounts d
 WHERE b.id = $1
 LIMIT 1;
 `;
+
+export const getLatestBooks = `
+SELECT *
+FROM books
+ORDER BY TO_DATE(publish_date, 'DD/MM/YYYY') DESC
+LIMIT 4;
+`;

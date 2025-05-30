@@ -26,3 +26,17 @@ export const getBookByIdController = async (req, res) => {
     res.status(500).json({ error: "Error al obtener el libro" });
   }
 };
+
+export const getLatestBooks = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT * FROM books
+      ORDER BY publish_date DESC
+      LIMIT 4
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ Error al obtener los libros más recientes:", err);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+};

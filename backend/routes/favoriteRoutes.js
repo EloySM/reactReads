@@ -1,11 +1,23 @@
 import express from "express";
-import * as FavoriteController from "../controllers/favoriteController.js";
+import {
+  checkFavorite,
+  getFavorites,
+  addFavorite,
+  removeFavorite,
+} from "../controllers/favoriteController.js";
 
 const router = express.Router();
 
-router.post("/favorites/add", FavoriteController.addFavorite);
-router.post("/favorites/remove", FavoriteController.removeFavorite);
-router.get("/favorites/:userId", FavoriteController.getFavorites);
-router.get("/favorites/check", FavoriteController.checkIsFavorite);
+// ✔️ Ruta para comprobar si un libro está en favoritos
+router.get("/check", checkFavorite);
+
+// ✔️ Ruta para obtener todos los favoritos de un usuario
+router.get("/:userId", getFavorites);
+
+// ✔️ Añadir a favoritos
+router.post("/add", addFavorite);
+
+// ✔️ Eliminar de favoritos
+router.post("/remove", removeFavorite);
 
 export default router;

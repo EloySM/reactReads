@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 import { UserContext } from "../context/UserContext";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 function ProductPage() {
   const { id } = useParams();
@@ -11,6 +12,7 @@ function ProductPage() {
   const [addedToFavorites, setAddedToFavorites] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!id) return;
@@ -29,14 +31,33 @@ function ProductPage() {
     };
 
     const checkFavorite = async () => {
-      if (!user?.id) return;
+      if (!user?.id || !id) {
+        console.log("🚫 Usuario o ID no definido:", { user, id });
+        return;
+      }
+
+      const numericBookId = Number(id);
+      console.log("📦 Enviando check:", {
+        userId: user.id,
+        bookId: numericBookId,
+        typeofBookId: typeof numericBookId,
+      });
+
       try {
-        const res = await axios.get(`http://localhost:3001/api/favorites/check`, {
-          params: { userId: user.id, bookId: id }
-        });
+        const res = await axios.get(
+          `http://localhost:3001/api/favorites/check`,
+          {
+            params: {
+              userId: user.id,
+              bookId: numericBookId,
+            },
+          }
+        );
+
+        console.log("✅ Respuesta de check:", res.data);
         setAddedToFavorites(res.data.isFavorite);
       } catch (err) {
-        console.error("Error al comprobar favorito:", err);
+        console.error("❌ Error al comprobar favorito:", err);
       }
     };
 
@@ -54,13 +75,13 @@ function ProductPage() {
       if (addedToFavorites) {
         await axios.post("http://localhost:3001/api/favorites/remove", {
           userId: user.id,
-          bookId: id,
+          bookId: Number(id),
         });
         setAddedToFavorites(false);
       } else {
         await axios.post("http://localhost:3001/api/favorites/add", {
           userId: user.id,
-          bookId: id,
+          bookId: Number(id),
         });
         setAddedToFavorites(true);
       }
@@ -77,7 +98,7 @@ function ProductPage() {
     }
 
     try {
-      await axios.post("http://localhost:3001/api/user/cart/add", {
+      await axios.post("http://localhost:3001/api/cart/add", {
         userId: user.id,
         bookId: id,
         quantity,
@@ -102,6 +123,28 @@ function ProductPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 text-gray-800 p-8">
+      <div className="max-w-262 mx-auto mb-8">
+        <button
+          onClick={() => navigate(-1)}
+          className="inline-flex items-center px-4 py-2 text-sm font-medium text-indigo-700 bg-indigo-100 rounded-lg shadow-sm hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition"
+        >
+          <svg
+            className="w-5 h-5 mr-2 -ml-1"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15 19l-7-7 7-7"
+            ></path>
+          </svg>
+          Go Back
+        </button>
+      </div>
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Imagen del libro */}
         <div className="flex justify-center items-start">
@@ -208,7 +251,9 @@ function ProductPage() {
           <button
             onClick={handleAddToFavorites}
             className={`flex items-center justify-center gap-2 py-2 px-4 rounded-md transition text-white ${
-              addedToFavorites ? "bg-red-500 hover:bg-red-400" : "bg-blue-500 hover:bg-blue-400"
+              addedToFavorites
+                ? "bg-red-500 hover:bg-red-400"
+                : "bg-blue-500 hover:bg-blue-400"
             }`}
           >
             {addedToFavorites ? "❤️ En favoritos" : "🤍 Añadir a favoritos"}

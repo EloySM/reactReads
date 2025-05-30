@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { Trash2, Plus, Minus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 function CartPage({ userId }) {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [animateItem, setAnimateItem] = useState({}); // { [id]: 'increase'|'decrease'|null }
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!userId) return;
@@ -72,11 +74,14 @@ function CartPage({ userId }) {
 
   const handleIncreaseQuantity = async (id) => {
     try {
-      const response = await fetch("http://localhost:3001/api/user/cart/increase", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, bookId: id }),
-      });
+      const response = await fetch(
+        "http://localhost:3001/api/user/cart/increase",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId, bookId: id }),
+        }
+      );
       if (!response.ok) throw new Error("Error al aumentar cantidad");
       setCartItems((prev) =>
         prev.map((item) =>
@@ -93,20 +98,26 @@ function CartPage({ userId }) {
     try {
       if (quantity <= 1) {
         // eliminar el item si cantidad es 1
-        const response = await fetch("http://localhost:3001/api/user/cart/remove", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId, bookId: id }),
-        });
+        const response = await fetch(
+          "http://localhost:3001/api/user/cart/remove",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId, bookId: id }),
+          }
+        );
         if (!response.ok) throw new Error("Error al eliminar el libro");
         setCartItems((prev) => prev.filter((item) => item.id !== id));
       } else {
         // disminuir cantidad
-        const response = await fetch("http://localhost:3001/api/user/cart/decrease", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId, bookId: id }),
-        });
+        const response = await fetch(
+          "http://localhost:3001/api/user/cart/decrease",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId, bookId: id }),
+          }
+        );
         if (!response.ok) throw new Error("Error al disminuir cantidad");
         setCartItems((prev) =>
           prev.map((item) =>
@@ -120,6 +131,36 @@ function CartPage({ userId }) {
     }
   };
 
+  const handleCheckout = async () => {
+    if (cartItems.length === 0) {
+      alert("El carrito está vacío");
+      return;
+    }
+
+    const payload = {
+      userId,
+      items: cartItems.map(({ id, quantity }) => ({ bookId: id, quantity })),
+    };
+
+    console.log("📦 Payload que se enviará a /orders/create:", payload); // 👈 añade esto
+
+    try {
+      const response = await fetch("http://localhost:3001/api/orders/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) throw new Error("Error al procesar la compra");
+
+      alert("Compra realizada con éxito");
+      setCartItems([]);
+      navigate("/orders");
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
   const total = cartItems.reduce(
     (acc, item) => acc + Number(item.price) * item.quantity,
     0
@@ -127,8 +168,7 @@ function CartPage({ userId }) {
 
   if (loading)
     return <p className="text-center text-white mt-10">Cargando carrito...</p>;
-  if (error)
-    return <p className="text-center text-red-500 mt-10">{error}</p>;
+  if (error) return <p className="text-center text-red-500 mt-10">{error}</p>;
   if (cartItems.length === 0)
     return (
       <p className="text-center text-gray-400 mt-10 text-lg">
@@ -138,6 +178,28 @@ function CartPage({ userId }) {
 
   return (
     <div className="max-w-5xl mx-auto p-6 bg-white rounded-xl shadow-md text-gray-800">
+      <div className="max-w-262 mx-auto mb-8">
+        <button
+          onClick={() => navigate(-1)}
+          className="inline-flex items-center px-4 py-2 text-sm font-medium text-indigo-700 bg-indigo-100 rounded-lg shadow-sm hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition"
+        >
+          <svg
+            className="w-5 h-5 mr-2 -ml-1"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15 19l-7-7 7-7"
+            ></path>
+          </svg>
+          Go Back
+        </button>
+      </div>
       <h1 className="text-3xl font-bold mb-6 border-b pb-2 text-blue-900">
         🛒 Tu carrito
       </h1>
@@ -178,8 +240,16 @@ function CartPage({ userId }) {
 
                 <span
                   className={`font-semibold text-sm w-6 text-center leading-none transition-transform duration-300 
-                    ${animateItem[id] === "increase" ? "text-green-600 scale-150" : ""}
-                    ${animateItem[id] === "decrease" ? "text-red-600 scale-150" : ""}
+                    ${
+                      animateItem[id] === "increase"
+                        ? "text-green-600 scale-150"
+                        : ""
+                    }
+                    ${
+                      animateItem[id] === "decrease"
+                        ? "text-red-600 scale-150"
+                        : ""
+                    }
                   `}
                 >
                   {quantity}
@@ -223,7 +293,10 @@ function CartPage({ userId }) {
           >
             Vaciar carrito
           </button>
-          <button className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-500 transition text-sm font-medium">
+          <button
+            onClick={handleCheckout}
+            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-500 transition text-sm font-medium"
+          >
             Finalizar compra
           </button>
         </div>

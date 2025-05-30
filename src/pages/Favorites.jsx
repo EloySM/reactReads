@@ -1,12 +1,14 @@
 import { useContext, useEffect, useState } from "react";
 import { UserContext } from "../context/UserContext";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 function FavoritesPage() {
   const { user } = useContext(UserContext);
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   // Cargar favoritos al montar el componente
   useEffect(() => {
@@ -16,12 +18,12 @@ function FavoritesPage() {
       try {
         setLoading(true);
         const res = await axios.get(
-          `http://localhost:3001/api/user/favorites/${user.id}`
+          `http://localhost:3001/api/favorites/${user.id}`
         );
         setFavorites(res.data);
         setLoading(false);
-      } catch (err) {
-        setError("Error cargando favoritos");
+      } catch (e) {
+        setError("Error cargando favoritos", e);
         setLoading(false);
       }
     };
@@ -32,14 +34,14 @@ function FavoritesPage() {
   // Eliminar un libro de favoritos
   const handleRemoveFavorite = async (bookId) => {
     try {
-      await axios.post("http://localhost:3001/api/user/favorites/remove", {
+      await axios.post("http://localhost:3001/api/favorites/remove", {
         userId: user.id,
         bookId,
       });
       // Actualizar estado quitando el libro eliminado
       setFavorites((prev) => prev.filter((book) => book.id !== bookId));
-    } catch (err) {
-      alert("Error eliminando favorito");
+    } catch (e) {
+      alert("Error eliminando favorito", e);
     }
   };
 
@@ -73,6 +75,29 @@ function FavoritesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-6xl mx-auto mb-8">
+        <button
+          onClick={() => navigate(-1)}
+          className="inline-flex items-center px-4 py-2 text-sm font-medium text-indigo-700 bg-indigo-100 rounded-lg shadow-sm hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition"
+        >
+          <svg
+            className="w-5 h-5 mr-2 -ml-1"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15 19l-7-7 7-7"
+            ></path>
+          </svg>
+          Go Back
+        </button>
+      </div>
+
       <h1 className="text-4xl font-bold mb-8 text-center text-gray-800">
         Tus Libros Favoritos
       </h1>

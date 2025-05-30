@@ -2,8 +2,8 @@ import "./styles/App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import News from "./pages/News";
 import Books from "./pages/Books";
-import Comics from "./pages/Comics";
-import Mangas from "./pages/Mangas";
+// import Comics from "./pages/Comics";
+// import Mangas from "./pages/Mangas";
 import ProductPages from "./pages/ProductPage";
 import LoginPage from "./pages/LoginPage";
 import Profile from "./pages/Profile"
@@ -11,6 +11,7 @@ import MenuBar from "./components/MenuBar";
 import Cart from "./pages/Cart"
 import Favorites from "./pages/Favorites"
 import { UserProvider } from "./context/UserContext";
+import OrdersPage from "./pages/OrdersPage";
 
 function App() {
   return (
@@ -30,13 +31,14 @@ function App() {
           <Routes>
             <Route path="/" element={<News />} />
             <Route path="/books" element={<Books />} />
-            <Route path="/comics" element={<Comics />} />
-            <Route path="/mangas" element={<Mangas />} />
+            {/* <Route path="/comics" element={<Comics />} /> */}
+            {/* <Route path="/mangas" element={<Mangas />} /> */}
             <Route path="/book/:id" element={<ProductPages />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/profile" element={<Profile/>} />
             <Route path="/cart" element={<Cart/>} />
             <Route path="/favorites" element={<Favorites/>} />
+            <Route path="/orders" element={<OrdersPage/>} />
           </Routes>
         </main>
       </Router>
